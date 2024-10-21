@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os 
+import dj_database_url #type.ignore
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +22,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-7=r!ivhy&=i3@3pal_1v$evp$bo&y%=#66y_+!7ucud(0d0-!='
+# SECRET_KEY = 'django-insecure-7=r!ivhy&=i3@3pal_1v$evp$bo&y%=#66y_+!7ucud(0d0-!='
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG =os.environ.get('DEBUG', False).lower() == True
 
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -38,8 +42,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'polls',
-    'rest_framework'
+    'accounts',
+    'rest_framework',
+    'corsheaders',
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -49,6 +58,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_app.middleware.CustomHeaderMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    
 ]
 
 ROOT_URLCONF = 'django_app.urls'
@@ -86,6 +98,13 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
+# DATABASES['default'] = dj_database_url.parse('postgresql://django_db_eheg_user:UqB0NdYnYB3PkW0oQ9VzBHxdfx5zZ9Rp@dpg-csaa3oq3esus739qpcu0-a.singapore-postgres.render.com/django_db_eheg')
+
+databaseURL= os.environ.get('DATABASE_URL')
+DATABASES['default'] = dj_database_url.parse(databaseURL)
+
+
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -100,6 +119,23 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+#Login URL
+
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = 'polls:index'
+LOGOUT_REDIRECT_URL= 'polls:index'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    
+    }
+
 
 
 # Internationalization
